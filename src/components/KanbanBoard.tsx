@@ -69,19 +69,49 @@ export function KanbanBoard() {
 
         if (dragging.type === 'Task') {
             const taskId = dragging.id;
-            const targetColumnId = targetId;
+            const targetTask = tasks.find((task) => task.id === targetId);
 
-            setTasks((prevTasks) => {
-                const taskToMove = prevTasks.find((task) => task.id === taskId);
-                if (!taskToMove) return prevTasks;
+            if (targetTask) {
+                // Rearranging tasks within the same column
+                const targetColumnId = targetTask.columnId;
 
-                return prevTasks.map((task) => {
-                    if (task.id === taskId) {
-                        return { ...task, columnId: targetColumnId };
-                    }
-                    return task;
+                setTasks((prevTasks) => {
+                    const taskToMove = prevTasks.find(
+                        (task) => task.id === taskId
+                    );
+                    if (!taskToMove) return prevTasks;
+
+                    const newTasks = prevTasks.filter(
+                        (task) => task.id !== taskId
+                    );
+                    const targetIndex = newTasks.findIndex(
+                        (task) => task.id === targetId
+                    );
+
+                    newTasks.splice(targetIndex, 0, {
+                        ...taskToMove,
+                        columnId: targetColumnId,
+                    });
+                    return newTasks;
                 });
-            });
+            } else {
+                // Moving task to a different column
+                const targetColumnId = targetId;
+
+                setTasks((prevTasks) => {
+                    const taskToMove = prevTasks.find(
+                        (task) => task.id === taskId
+                    );
+                    if (!taskToMove) return prevTasks;
+
+                    return prevTasks.map((task) => {
+                        if (task.id === taskId) {
+                            return { ...task, columnId: targetColumnId };
+                        }
+                        return task;
+                    });
+                });
+            }
         } else if (dragging.type === 'Column') {
             const columnId = dragging.id;
 

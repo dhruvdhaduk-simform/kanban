@@ -100,6 +100,7 @@ export function ColumnContainer({
                         deleteTask={deleteTask}
                         updateTask={updateTask}
                         onDragStart={() => onDragStart('Task', task.id)}
+                        onDrop={() => onDrop(task.id)} // Allow dropping on the task itself
                     />
                 ))}
             </div>

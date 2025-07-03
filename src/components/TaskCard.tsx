@@ -7,6 +7,7 @@ interface TaskCardProps {
     deleteTask: (id: Id) => void;
     updateTask: (id: Id, content: string) => void;
     onDragStart: () => void;
+    onDrop: () => void; // Add onDrop prop
 }
 
 export function TaskCard({
@@ -14,6 +15,7 @@ export function TaskCard({
     deleteTask,
     updateTask,
     onDragStart,
+    onDrop,
 }: TaskCardProps) {
     const [mouseIsOver, setMouseIsOver] = useState(false);
     const [editMode, setEditMode] = useState(false);
@@ -27,6 +29,7 @@ export function TaskCard({
         <div
             draggable
             onDragStart={onDragStart}
+            onDrop={onDrop} // Handle drop on the task card
             onClick={toggleEditMode}
             onMouseEnter={() => !editMode && setMouseIsOver(true)}
             onMouseLeave={() => !editMode && setMouseIsOver(false)}
