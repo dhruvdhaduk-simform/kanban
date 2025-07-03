@@ -9,12 +9,14 @@ interface ColumnContainerProps {
     deleteColumn: (id: Id) => void;
     updateColumn: (id: Id, title: string) => void;
     createTask: (columnId: Id) => void;
+    tasks: Array<Task>;
     deleteTask: (id: Id) => void;
     updateTask: (id: Id, content: string) => void;
-    task: Array<Task>;
     onDragStart: (type: 'Column' | 'Task', id: Id) => void;
-    onDrop: (columnId: Id) => void;
+    onDrop: (targetId: Id) => void;
     dragging: { type: 'Column' | 'Task'; id: Id } | null;
+    setDragOver: (id: Id | null) => void;
+    dragOver: Id | null;
 }
 
 export function ColumnContainer({
@@ -22,21 +24,19 @@ export function ColumnContainer({
     deleteColumn,
     updateColumn,
     createTask,
+    tasks,
     deleteTask,
     updateTask,
-    task,
     onDragStart,
     onDrop,
     dragging,
+    setDragOver,
 }: ColumnContainerProps) {
     const [editMode, setEditMode] = useState(false);
 
-    const handleDragStart = (id: Id) => {
-        onDragStart('Task', id);
-    };
-
     const handleDrop = () => {
         onDrop(column.id);
+        setDragOver(null);
     };
 
     return (
@@ -46,7 +46,10 @@ export function ColumnContainer({
                     ? 'border-2 border-blue-500'
                     : ''
             }`}
-            onDragOver={(e) => e.preventDefault()}
+            onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(column.id);
+            }}
             onDrop={handleDrop}
         >
             <div
@@ -57,7 +60,7 @@ export function ColumnContainer({
             >
                 <div className="flex items-center gap-2 cursor-pointer">
                     <div className="flex justify-center items-center bg-columnBackgroundColor px-2 py-1 text-sm rounded-full">
-                        {task.length}
+                        {tasks.length}
                     </div>
                     {!editMode && (
                         <p className="p-2 pl-[9px]">{column.title}</p>
@@ -90,13 +93,13 @@ export function ColumnContainer({
             <div
                 className={`flex flex-grow flex-col gap-4 p-2 overflow-x-hidden overflow-y-auto`}
             >
-                {task.map((task) => (
+                {tasks.map((task) => (
                     <TaskCard
                         key={task.id}
                         task={task}
                         deleteTask={deleteTask}
                         updateTask={updateTask}
-                        onDragStart={handleDragStart}
+                        onDragStart={() => onDragStart('Task', task.id)}
                     />
                 ))}
             </div>

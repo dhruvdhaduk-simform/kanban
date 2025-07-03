@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 import type { Id, Task } from '@/types';
 import { TrashIcon } from '@/icons/TrashIcon';
 
@@ -7,7 +6,7 @@ interface TaskCardProps {
     task: Task;
     deleteTask: (id: Id) => void;
     updateTask: (id: Id, content: string) => void;
-    onDragStart: (id: Id) => void;
+    onDragStart: () => void;
 }
 
 export function TaskCard({
@@ -27,7 +26,7 @@ export function TaskCard({
     return (
         <div
             draggable
-            onDragStart={() => onDragStart(task.id)}
+            onDragStart={onDragStart}
             onClick={toggleEditMode}
             onMouseEnter={() => !editMode && setMouseIsOver(true)}
             onMouseLeave={() => !editMode && setMouseIsOver(false)}

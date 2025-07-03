@@ -11,7 +11,7 @@ export function KanbanBoard() {
         LOCAL_STORAGE_KEYS.COLUMNS,
         []
     );
-    const [task, setTask] = useLocalStorage<Array<Task>>(
+    const [tasks, setTasks] = useLocalStorage<Array<Task>>(
         LOCAL_STORAGE_KEYS.TASKS,
         []
     );
@@ -20,99 +20,90 @@ export function KanbanBoard() {
         type: 'Column' | 'Task';
         id: Id;
     } | null>(null);
+    const [dragOver, setDragOver] = useState<Id | null>(null);
 
     const createColumn = () => {
-        const columnToAdd: Column = {
+        const newColumn: Column = {
             id: generateID(),
             title: `Column ${columns.length + 1}`,
         };
-
-        setColumns([...columns, columnToAdd]);
+        setColumns((prev) => [...prev, newColumn]);
     };
 
     const deleteColumn = (id: Id) => {
-        const filteredColumn = columns.filter((col) => col.id !== id);
-        setColumns(filteredColumn);
-
-        const newTask = task.filter((t) => t.columnId !== id);
-        setTask(newTask);
+        setColumns((prev) => prev.filter((col) => col.id !== id));
+        setTasks((prev) => prev.filter((task) => task.columnId !== id));
     };
 
     const updateColumn = (id: Id, title: string) => {
-        const newColumn = columns.map((col) => {
-            if (col.id !== id) return col;
-            return { ...col, title };
-        });
-
-        setColumns(newColumn);
+        setColumns((prev) =>
+            prev.map((col) => (col.id === id ? { ...col, title } : col))
+        );
     };
 
     const createTask = (columnId: Id) => {
         const newTask: Task = {
             id: generateID(),
             columnId,
-            content: `Task ${task.length + 1}`,
+            content: `Task ${tasks.length + 1}`,
         };
-
-        setTask([...task, newTask]);
+        setTasks((prev) => [...prev, newTask]);
     };
 
     const deleteTask = (id: Id) => {
-        const newTasks = task.filter((task) => task.id !== id);
-        setTask(newTasks);
+        setTasks((prev) => prev.filter((task) => task.id !== id));
     };
 
     const updateTask = (id: Id, content: string) => {
-        const newTask = task.map((task) => {
-            if (task.id !== id) return task;
-            return { ...task, content };
-        });
-        setTask(newTask);
+        setTasks((prev) =>
+            prev.map((task) => (task.id === id ? { ...task, content } : task))
+        );
     };
 
     const onDragStart = (type: 'Column' | 'Task', id: Id) => {
         setDragging({ type, id });
     };
 
-    const onDragEnd = () => {
-        setDragging(null);
-    };
-
-    const onDrop = (columnId: Id) => {
+    const onDrop = (targetId: Id) => {
         if (!dragging) return;
 
         if (dragging.type === 'Task') {
             const taskId = dragging.id;
-            setTask((prevTasks) => {
-                const taskToMove = prevTasks.find((t) => t.id === taskId);
+            const targetColumnId = targetId;
+
+            setTasks((prevTasks) => {
+                const taskToMove = prevTasks.find((task) => task.id === taskId);
                 if (!taskToMove) return prevTasks;
 
-                return prevTasks.map((t) => {
-                    if (t.id === taskId) {
-                        return { ...t, columnId };
+                return prevTasks.map((task) => {
+                    if (task.id === taskId) {
+                        return { ...task, columnId: targetColumnId };
                     }
-                    return t;
+                    return task;
                 });
             });
         } else if (dragging.type === 'Column') {
             const columnId = dragging.id;
+
             setColumns((prevColumns) => {
-                const activeColumnIndex = prevColumns.findIndex(
+                const activeIndex = prevColumns.findIndex(
                     (col) => col.id === columnId
                 );
-                const overColumnIndex = prevColumns.findIndex(
-                    (col) => col.id === columnId
+                const targetIndex = prevColumns.findIndex(
+                    (col) => col.id === targetId
                 );
-                if (activeColumnIndex === overColumnIndex) return prevColumns;
+
+                if (activeIndex === targetIndex) return prevColumns;
 
                 const newColumns = [...prevColumns];
-                const [movedColumn] = newColumns.splice(activeColumnIndex, 1);
-                newColumns.splice(overColumnIndex, 0, movedColumn);
+                const [movedColumn] = newColumns.splice(activeIndex, 1);
+                newColumns.splice(targetIndex, 0, movedColumn);
                 return newColumns;
             });
         }
 
-        onDragEnd();
+        setDragging(null);
+        setDragOver(null);
     };
 
     return (
@@ -126,7 +117,7 @@ export function KanbanBoard() {
                             deleteColumn={deleteColumn}
                             updateColumn={updateColumn}
                             createTask={createTask}
-                            task={task.filter(
+                            tasks={tasks.filter(
                                 (task) => task.columnId === column.id
                             )}
                             deleteTask={deleteTask}
@@ -134,11 +125,13 @@ export function KanbanBoard() {
                             onDragStart={onDragStart}
                             onDrop={onDrop}
                             dragging={dragging}
+                            setDragOver={setDragOver}
+                            dragOver={dragOver}
                         />
                     ))}
                 </div>
                 <button
-                    onClick={() => createColumn()}
+                    onClick={createColumn}
                     className="h-[60px] w-[380px] min-w-[380px] cursor-pointer rounded-lg bg-mainBackgroundColor border-2 border-columnBackgroundColor p-4 ring-blue-500 hover:ring-2 flex gap-2"
                 >
                     <PlusIcon />
