@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
 import type { Id, Task } from '@/types';
 import { TrashIcon } from '@/icons/TrashIcon';
@@ -9,32 +7,17 @@ interface TaskCardProps {
     task: Task;
     deleteTask: (id: Id) => void;
     updateTask: (id: Id, content: string) => void;
+    onDragStart: (id: Id) => void;
 }
 
-export function TaskCard({ task, deleteTask, updateTask }: TaskCardProps) {
+export function TaskCard({
+    task,
+    deleteTask,
+    updateTask,
+    onDragStart,
+}: TaskCardProps) {
     const [mouseIsOver, setMouseIsOver] = useState(false);
     const [editMode, setEditMode] = useState(false);
-
-    const {
-        setNodeRef,
-        attributes,
-        listeners,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({
-        id: task.id,
-        data: {
-            type: 'Task',
-            task,
-        },
-        disabled: editMode,
-    });
-
-    const style = {
-        transition,
-        transform: CSS.Transform.toString(transform),
-    };
 
     const toggleEditMode = () => {
         setEditMode((prev) => !prev);
@@ -43,14 +26,12 @@ export function TaskCard({ task, deleteTask, updateTask }: TaskCardProps) {
 
     return (
         <div
-            ref={setNodeRef}
-            style={style}
-            {...attributes}
-            {...listeners}
+            draggable
+            onDragStart={() => onDragStart(task.id)}
             onClick={toggleEditMode}
             onMouseEnter={() => !editMode && setMouseIsOver(true)}
             onMouseLeave={() => !editMode && setMouseIsOver(false)}
-            className={`bg-mainBackgroundColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl hover:ring-2 hover:ring-inset hover:ring-blue-500 cursor-grab relative task ${isDragging && 'opacity-40 border-2 border-blue-500'}`}
+            className={`bg-mainBackgroundColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl hover:ring-2 hover:ring-inset hover:ring-blue-500 cursor-grab relative`}
         >
             {editMode ? (
                 <textarea

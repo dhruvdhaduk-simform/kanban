@@ -1,7 +1,4 @@
-import { useMemo, useState } from 'react';
-import { SortableContext, useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-
+import { useState } from 'react';
 import { TaskCard } from '@/components/TaskCard';
 import type { Column, Id, Task } from '@/types';
 import { TrashIcon } from '@/icons/TrashIcon';
@@ -11,11 +8,13 @@ interface ColumnContainerProps {
     column: Column;
     deleteColumn: (id: Id) => void;
     updateColumn: (id: Id, title: string) => void;
-
     createTask: (columnId: Id) => void;
     deleteTask: (id: Id) => void;
     updateTask: (id: Id, content: string) => void;
     task: Array<Task>;
+    onDragStart: (type: 'Column' | 'Task', id: Id) => void;
+    onDrop: (columnId: Id) => void;
+    dragging: { type: 'Column' | 'Task'; id: Id } | null;
 }
 
 export function ColumnContainer({
@@ -26,53 +25,43 @@ export function ColumnContainer({
     deleteTask,
     updateTask,
     task,
+    onDragStart,
+    onDrop,
+    dragging,
 }: ColumnContainerProps) {
     const [editMode, setEditMode] = useState(false);
 
-    const {
-        setNodeRef,
-        attributes,
-        listeners,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({
-        id: column.id,
-        data: {
-            type: 'Column',
-            column,
-        },
-        disabled: editMode,
-    });
+    const handleDragStart = (id: Id) => {
+        onDragStart('Task', id);
+    };
 
-    const taskId = useMemo(() => {
-        return task.map((task) => task.id);
-    }, [task]);
-
-    const style = {
-        transition,
-        transform: CSS.Transform.toString(transform),
+    const handleDrop = () => {
+        onDrop(column.id);
     };
 
     return (
         <div
-            ref={setNodeRef}
-            style={style}
             className={`bg-columnBackgroundColor w-[380px] h-[600px] max-h-[600px] rounded-md flex flex-col ${
-                isDragging && 'border-2 border-blue-500'
+                dragging?.type === 'Column' && dragging.id === column.id
+                    ? 'border-2 border-blue-500'
+                    : ''
             }`}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDrop}
         >
             <div
-                {...attributes}
-                {...listeners}
                 onClick={() => setEditMode(true)}
-                className={`bg-mainBackgroundColor text-md h-[60px] rounded-md rounded-b-none p-3 font-bold border-columnBackgroundColor border-4 flex items-center justify-between cursor-grab ${isDragging && 'opacity-30'}`}
+                className={`bg-mainBackgroundColor text-md h-[60px] rounded-md rounded-b-none p-3 font-bold border-columnBackgroundColor border-4 flex items-center justify-between cursor-grab`}
+                draggable
+                onDragStart={() => onDragStart('Column', column.id)}
             >
                 <div className="flex items-center gap-2 cursor-pointer">
                     <div className="flex justify-center items-center bg-columnBackgroundColor px-2 py-1 text-sm rounded-full">
                         {task.length}
                     </div>
-                    {!editMode && <p className='p-2 pl-[9px]'>{column.title}</p>}
+                    {!editMode && (
+                        <p className="p-2 pl-[9px]">{column.title}</p>
+                    )}
                     {editMode && (
                         <input
                             className="bg-black focus:border-blue-500 border rounded outline-none px-2"
@@ -99,26 +88,25 @@ export function ColumnContainer({
                 </button>
             </div>
             <div
-                className={`flex flex-grow flex-col gap-4 p-2 overflow-x-hidden overflow-y-auto ${isDragging && 'opacity-30'}`}
+                className={`flex flex-grow flex-col gap-4 p-2 overflow-x-hidden overflow-y-auto`}
             >
-                <SortableContext items={taskId}>
-                    {task.map((task) => (
-                        <TaskCard
-                            key={task.id}
-                            task={task}
-                            deleteTask={deleteTask}
-                            updateTask={updateTask}
-                        />
-                    ))}
-                </SortableContext>
+                {task.map((task) => (
+                    <TaskCard
+                        key={task.id}
+                        task={task}
+                        deleteTask={deleteTask}
+                        updateTask={updateTask}
+                        onDragStart={handleDragStart}
+                    />
+                ))}
             </div>
             <button
                 onClick={() => createTask(column.id)}
-                className={`flex gap-2 items-center border-columnBackgroundColor border-2 rounded-md p-4 border-x-columnBackgroundColor hover:bg-mainBackgroundColor hover:text-blue-500 active:bg-black cursor-pointer ${isDragging && 'opacity-30'}`}
+                className={`flex gap-2 items-center border-columnBackgroundColor border-2 rounded-md p-4 border-x-columnBackgroundColor hover:bg-mainBackgroundColor hover:text-blue-500 active:bg-black cursor-pointer`}
             >
                 <PlusIcon />
                 Add task
             </button>
         </div>
     );
-};
+}
