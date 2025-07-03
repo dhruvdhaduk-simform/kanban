@@ -1,0 +1,4 @@
+export const LOCAL_STORAGE_KEYS = {
+    COLUMNS: 'KANBAN_COLUMNS_KEY',
+    TASKS: 'KANBAN_TASKS_KEY',
+} as const;
