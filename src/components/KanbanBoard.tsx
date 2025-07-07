@@ -23,9 +23,17 @@ export function KanbanBoard() {
     const [dragOver, setDragOver] = useState<Id | null>(null);
 
     const createColumn = () => {
+        const PREFIX = 'Column ';
+        let maxIndex = 0;
+        columns.forEach((c) => {
+            if (c.title.startsWith(PREFIX)) {
+                const index = Number(c.title.slice(PREFIX.length));
+                if (Number.isInteger(index)) maxIndex = index;
+            }
+        });
         const newColumn: Column = {
             id: generateID(),
-            title: `Column ${columns.length + 1}`,
+            title: `${PREFIX}${maxIndex + 1}`,
         };
         setColumns((prev) => [...prev, newColumn]);
     };
