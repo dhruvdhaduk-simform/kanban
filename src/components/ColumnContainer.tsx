@@ -4,6 +4,8 @@ import type { Column, Id, Task } from '@/types';
 import { TrashIcon } from '@/icons/TrashIcon';
 import { PlusIcon } from '@/icons/PlusIcon';
 
+const PLACEHOLDER = 'Column Name Here';
+
 interface ColumnContainerProps {
     column: Column;
     deleteColumn: (id: Id) => void;
@@ -39,6 +41,8 @@ export function ColumnContainer({
         setDragOver(null);
     };
 
+    const isColumnNameEmpty = !column.title.trim();
+
     return (
         <div
             className={`bg-columnBackgroundColor w-[380px] h-[600px] max-h-[600px] rounded-md flex flex-col ${
@@ -54,7 +58,7 @@ export function ColumnContainer({
         >
             <div
                 onClick={() => setEditMode(true)}
-                className={`bg-mainBackgroundColor text-md h-[60px] rounded-md rounded-b-none p-3 font-bold border-columnBackgroundColor border-4 flex items-center justify-between cursor-grab`}
+                className={`bg-mainBackgroundColor text-md h-[60px] rounded-md rounded-b-none p-3 ${!isColumnNameEmpty && 'font-bold'} border-columnBackgroundColor border-4 flex items-center justify-between cursor-grab`}
                 draggable
                 onDragStart={() => onDragStart('Column', column.id)}
             >
@@ -63,12 +67,21 @@ export function ColumnContainer({
                         {tasks.length}
                     </div>
                     {!editMode && (
-                        <p className="p-2 pl-[9px]">{column.title}</p>
+                        <p className="p-2 pl-[9px]">
+                            {isColumnNameEmpty ? (
+                                <span className="opacity-50">
+                                    {PLACEHOLDER}
+                                </span>
+                            ) : (
+                                <span>{column.title}</span>
+                            )}
+                        </p>
                     )}
                     {editMode && (
                         <input
                             className="bg-black focus:border-blue-500 border rounded outline-none px-2"
                             value={column.title}
+                            placeholder={PLACEHOLDER}
                             autoFocus
                             onChange={(e) =>
                                 updateColumn(column.id, e.target.value)
