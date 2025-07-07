@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { Id, Task } from '@/types';
 import { TrashIcon } from '@/icons/TrashIcon';
 
+const PLACEHOLDER = 'Task content here';
+
 interface TaskCardProps {
     task: Task;
     deleteTask: (id: Id) => void;
@@ -25,6 +27,8 @@ export function TaskCard({
         setMouseIsOver(false);
     };
 
+    const isTaskEmpty = !task.content.trim();
+
     return (
         <div
             draggable
@@ -39,7 +43,7 @@ export function TaskCard({
                 <textarea
                     value={task.content}
                     autoFocus
-                    placeholder="Task content here"
+                    placeholder={PLACEHOLDER}
                     onBlur={toggleEditMode}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && e.shiftKey) toggleEditMode();
@@ -50,7 +54,11 @@ export function TaskCard({
             ) : (
                 <>
                     <p className="my-auto h-[90%] w-full overflow-y-auto overflow-x-hidden whitespace-pre-wrap">
-                        {task.content}
+                        {isTaskEmpty ? (
+                            <span className="opacity-50">{PLACEHOLDER}</span>
+                        ) : (
+                            <span>{task.content}</span>
+                        )}
                     </p>
                     {mouseIsOver && (
                         <button

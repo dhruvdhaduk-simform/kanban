@@ -53,7 +53,7 @@ export function KanbanBoard() {
         const newTask: Task = {
             id: generateID(),
             columnId,
-            content: `Task ${tasks.length + 1}`,
+            content: '',
         };
         setTasks((prev) => [...prev, newTask]);
     };
